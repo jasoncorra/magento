@@ -31,6 +31,15 @@
  */
 class Enterprise_Pci_Model_Encryption extends Mage_Core_Model_Encryption
 {
+    const HASH_VERSION_MD5     = 0;
+    const HASH_VERSION_SHA256  = 1;
+    const HASH_VERSION_SHA512  = 2;
+
+    /**
+     * Encryption method bcrypt
+     */
+    const HASH_VERSION_LATEST = 3;
+
     const CIPHER_BLOWFISH     = 0;
     const CIPHER_RIJNDAEL_128 = 1;
     const CIPHER_RIJNDAEL_256 = 2;
@@ -67,6 +76,23 @@ class Enterprise_Pci_Model_Encryption extends Mage_Core_Model_Encryption
             Mage::throwException('Not supported cipher version');
         }
         return $version;
+    }
+
+    /**
+     * Validate hash against all supported versions.
+     *
+     * Priority is by newer version.
+     *
+     * @param string $password
+     * @param string $hash
+     * @return bool
+     */
+    public function validateHash($password, $hash)
+    {
+        return $this->validateHashByVersion($password, $hash, self::HASH_VERSION_LATEST)
+            || $this->validateHashByVersion($password, $hash, self::HASH_VERSION_SHA512)
+            || $this->validateHashByVersion($password, $hash, self::HASH_VERSION_SHA256)
+            || $this->validateHashByVersion($password, $hash, self::HASH_VERSION_MD5);
     }
 
     /**

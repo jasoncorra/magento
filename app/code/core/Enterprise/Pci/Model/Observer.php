@@ -112,18 +112,15 @@ class Enterprise_Pci_Model_Observer
             }
         }
 
-        if (
-            !(bool) $user->getPasswordUpgraded()
-            && !Mage::helper('core')->getEncryptor()->validateHashByVersion(
-                $password,
-                $user->getPassword(),
-                Enterprise_Pci_Model_Encryption::HASH_VERSION_SHA256
-            )
+        // upgrade admin password
+        if (!Mage::helper('core')->getEncryptor()->validateHashByVersion(
+            $password,
+            $user->getPassword(),
+            $this->_getCoreHelper()->getVersionHash($this->_getCoreHelper()->getEncryptor()))
         ) {
             Mage::getModel('admin/user')->load($user->getId())
                 ->setNewPassword($password)->setForceNewPassword(true)
                 ->save();
-            $user->setPasswordUpgraded(true);
         }
     }
 
@@ -156,16 +153,9 @@ class Enterprise_Pci_Model_Observer
         $apiKey = $observer->getEvent()->getApiKey();
         $model  = $observer->getEvent()->getModel();
         $coreHelper = $this->_getCoreHelper();
-        if (
-            !(bool) $model->getApiPasswordUpgraded()
-            && !$coreHelper->getEncryptor()->validateHashByVersion(
-                $apiKey,
-                $model->getApiKey(),
-                Enterprise_Pci_Model_Encryption::HASH_VERSION_SHA256
-            )
-        ) {
+        $currentVersionHash = $coreHelper->getVersionHash($coreHelper->getEncryptor());
+        if (!$coreHelper->getEncryptor()->validateHashByVersion($apiKey, $model->getApiKey(), $currentVersionHash)) {
             Mage::getModel('api/user')->load($model->getId())->setNewApiKey($apiKey)->save();
-            $model->setApiPasswordUpgraded(true);
         }
     }
 
@@ -186,6 +176,7 @@ class Enterprise_Pci_Model_Observer
             Enterprise_Pci_Model_Encryption::HASH_VERSION_SHA512,
             Enterprise_Pci_Model_Encryption::HASH_VERSION_LATEST,
         ];
+        $latestVersionHash = $this->_getCoreHelper()->getVersionHash($encryptor);
         $currentVersionHash = null;
         foreach ($hashVersionArray as $hashVersion) {
             if ($encryptor->validateHashByVersion($password, $model->getPasswordHash(), $hashVersion)) {
@@ -193,7 +184,7 @@ class Enterprise_Pci_Model_Observer
                 break;
             }
         }
-        if (Enterprise_Pci_Model_Encryption::HASH_VERSION_SHA256 !== $currentVersionHash) {
+        if ($latestVersionHash !== $currentVersionHash) {
             $model->changePassword($password, false);
         }
     }

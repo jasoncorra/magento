@@ -161,15 +161,7 @@
                     <div class="field">
                         <label for="password" class="required"><em>*</em><?php echo $this->__('Password') ?></label>
                         <div class="input-box">
-                            <?php $minPasswordLength = $this->getMinPasswordLength(); ?>
-                            <input type="password"
-                                   name="password"
-                                   id="password"
-                                   title="<?php echo Mage::helper('core')->quoteEscape($this->__('Password')) ?>"
-                                   class="input-text required-entry validate-password min-pass-length-<?php echo $minPasswordLength ?>" />
-                            <p class="form-instructions">
-                                <?php echo $this->__('The minimum password length is %s', $minPasswordLength) ?>
-                            </p>
+                            <input type="password" name="password" id="password" title="<?php echo Mage::helper('core')->quoteEscape($this->__('Password')) ?>" class="input-text required-entry validate-password" />
                         </div>
                     </div>
                     <div class="field">

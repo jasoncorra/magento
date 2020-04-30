@@ -34,7 +34,6 @@
 class Mage_Core_Model_Encryption
 {
     const HASH_VERSION_MD5    = 0;
-    const HASH_VERSION_SHA256 = 1;
     const HASH_VERSION_SHA512 = 2;
 
     /**
@@ -80,9 +79,7 @@ class Mage_Core_Model_Encryption
         if (is_integer($salt)) {
             $salt = $this->_helper->getRandomString($salt);
         }
-        return $salt === false
-            ? $this->hash($password)
-            : $this->hash($salt . $password, self::HASH_VERSION_SHA256) . ':' . $salt;
+        return $salt === false ? $this->hash($password) : $this->hash($salt . $password) . ':' . $salt;
     }
 
     /**
@@ -113,8 +110,6 @@ class Mage_Core_Model_Encryption
     {
         if (self::HASH_VERSION_LATEST === $version && $version === $this->_helper->getVersionHash($this)) {
             return password_hash($data, PASSWORD_DEFAULT);
-        } elseif (self::HASH_VERSION_SHA256 == $version) {
-            return hash('sha256', $data);
         } elseif (self::HASH_VERSION_SHA512 == $version) {
             return hash('sha512', $data);
         }
@@ -133,7 +128,6 @@ class Mage_Core_Model_Encryption
     {
         return $this->validateHashByVersion($password, $hash, self::HASH_VERSION_LATEST)
             || $this->validateHashByVersion($password, $hash, self::HASH_VERSION_SHA512)
-            || $this->validateHashByVersion($password, $hash, self::HASH_VERSION_SHA256)
             || $this->validateHashByVersion($password, $hash, self::HASH_VERSION_MD5);
     }
 
